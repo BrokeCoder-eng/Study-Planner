@@ -1,0 +1,295 @@
+CLASS Test:
+    ATTRIBUTES:
+        testName (String)
+        testDate (Date)
+        weight (Integer)
+        priority (Integer)
+    
+    CONSTRUCTOR Test(name, date, weight):
+        this.testName = name
+        this.testDate = date
+        this.weight = weight
+        this.priority = calculatePriority()
+    
+    FUNCTION calculatePriority() -> Integer:
+        daysLeft = difference in days between TODAY and testDate
+        
+        // Prevent division by zero
+        IF daysLeft < 1 THEN:
+            daysLeft = 1
+        
+        urgencyFactor = 50 / daysLeft
+        weightFactor = weight
+        
+        RETURN urgencyFactor + weightFactor
+    
+    FUNCTION getDaysUntilTest() -> Integer:
+        RETURN difference in days between TODAY and testDate
+    
+    FUNCTION compareTo(otherTest) -> Integer:
+        // For PriorityQueue - higher priority comes first
+        IF otherTest.priority > this.priority THEN:
+            RETURN positive number (other comes first)
+        ELSE IF otherTest.priority < this.priority THEN:
+            RETURN negative number (this comes first)
+        ELSE:
+            RETURN 0 (equal priority)
+
+CLASS Subject:
+    ATTRIBUTES:
+        name (String)
+        tests (PriorityQueue<Test>)  // Automatically sorted by priority
+    
+    CONSTRUCTOR Subject(name):
+        this.name = name
+        this.tests = new empty PriorityQueue
+    
+    FUNCTION addTest(test):
+        // PriorityQueue automatically inserts in correct position
+        tests.offer(test)  // O(log n) operation
+    
+    FUNCTION getNextTest() -> Test:
+        // Peek at highest priority test without removing
+        RETURN tests.peek()  // O(1) operation
+    
+    FUNCTION getSubjectPriority() -> Integer:
+        nextTest = tests.peek()
+        
+        IF nextTest exists THEN:
+            RETURN nextTest.priority
+        ELSE:
+            RETURN 0  // No tests left
+    
+    FUNCTION compareTo(otherSubject) -> Integer:
+        // Compare subjects by their highest-priority test
+        IF otherSubject.getSubjectPriority() > this.getSubjectPriority() THEN:
+            RETURN positive number
+        ELSE:
+            RETURN negative number
+
+CLASS StudyPlanner:
+    ATTRIBUTES:
+        subjects (PriorityQueue<Subject>)  // Sorted by subject priority
+        subjectMap (HashMap<String, Subject>)  // For fast lookup by name
+    
+    CONSTRUCTOR StudyPlanner():
+        subjects = new empty PriorityQueue
+        subjectMap = new empty HashMap
+    
+    FUNCTION addSubject(subject):
+        // Add to both data structures
+        subjects.offer(subject)  // PriorityQueue: O(log n)
+        subjectMap.put(subject.name, subject)  // HashMap: O(1)
+    
+    FUNCTION addTestToSubject(subjectName, test):
+        // HashMap lookup - O(1) average case
+        subject = subjectMap.get(subjectName)
+        
+        IF subject exists THEN:
+            // Must remove and re-add to PriorityQueue to re-sort
+            subjects.remove(subject)  // O(n) - linear search
+            subject.addTest(test)  // Updates subject's priority
+            subjects.offer(subject)  // O(log n) - re-insert
+    
+    FUNCTION getNextTestOverall() -> Test:
+        topSubject = subjects.peek()  // O(1) - look at top subject
+        
+        IF topSubject exists THEN:
+            RETURN topSubject.getNextTest()  // O(1) - get its top test
+        ELSE:
+            RETURN null
+    
+    FUNCTION showAllTests():
+        // Create temporary copy to iterate without destroying original
+        tempSubjects = copy of subjects PriorityQueue
+        
+        WHILE tempSubjects is not empty:
+            subject = tempSubjects.poll()  // Remove top subject
+            PRINT subject.name
+            
+            tempTests = copy of subject.tests PriorityQueue
+            
+            WHILE tempTests is not empty:
+                test = tempTests.poll()  // Remove top test
+                PRINT "  - " + test
+
+CLASS WeeklyStudyPlanner:
+    ATTRIBUTES:
+        weekPlan (HashMap<String, List<StudySession>>)
+        days (Array of Strings) = ["Monday", "Tuesday", ..., "Sunday"]
+    
+    CONSTRUCTOR WeeklyStudyPlanner():
+        weekPlan = new empty HashMap
+        
+        // Initialize each day with empty list
+        FOR EACH day IN days:
+            weekPlan.put(day, new empty ArrayList)
+
+FUNCTION createPlan(studyPlanner, totalHoursPerWeek):
+        // Step 1: Clear existing plan
+        FOR EACH day IN weekPlan.keys():
+            weekPlan.get(day).clear()
+        
+        // Step 2: Generate all study sessions from all tests
+        allSessions = generateStudySessions(studyPlanner)
+        
+        // Step 3: Distribute sessions across the week
+        distributeSessions(allSessions, totalHoursPerWeek)
+
+FUNCTION generateStudySessions(studyPlanner) -> List<StudySession>:
+        sessions = new empty ArrayList
+        
+        // Create copy to iterate without destroying original
+        tempSubjects = copy of studyPlanner.subjects
+        
+        // Process each subject in priority order
+        WHILE tempSubjects is not empty:
+            subject = tempSubjects.poll()  // Get highest priority subject
+            
+            // Create copy of this subject's tests
+            tempTests = copy of subject.tests
+            
+            // Process each test in priority order
+            WHILE tempTests is not empty:
+                test = tempTests.poll()  // Get highest priority test
+                
+                // Calculate how many hours needed
+                hoursNeeded = calculateStudyHours(test)
+                
+                // Create study session object
+                session = new StudySession(
+                    subjectName: subject.name,
+                    testName: test.testName,
+                    hours: hoursNeeded,
+                    priority: test.priority,
+                    daysUntil: test.getDaysUntilTest()
+                )
+                
+                sessions.add(session)
+        
+        // Sort all sessions by priority (highest first)
+        SORT sessions BY priority DESCENDING
+        
+        RETURN sessions
+
+FUNCTION calculateStudyHours(test) -> Integer:
+        baseHours = 2  // Default
+        
+        // Weight-based allocation
+        IF test.weight >= 50 THEN:
+            baseHours = 6  // Major exam
+        ELSE IF test.weight >= 30 THEN:
+            baseHours = 4  // Medium test
+        ELSE IF test.weight >= 20 THEN:
+            baseHours = 3  // Small test
+        ELSE:
+            baseHours = 2  // Quiz
+        
+        // Urgency adjustment
+        daysLeft = test.getDaysUntilTest()
+        
+        IF daysLeft <= 3 THEN:
+            // Very urgent - cap hours (don't over-allocate)
+            baseHours = minimum(baseHours, 3)
+        ELSE IF daysLeft <= 7 THEN:
+            // Urgent - cap hours
+            baseHours = minimum(baseHours, 4)
+        
+        RETURN baseHours
+
+FUNCTION distributeSessions(sessions, totalHoursPerWeek):
+        hoursPerDay = totalHoursPerWeek / 7
+        dayIndex = 0
+        
+        // Process each session
+        FOR EACH session IN sessions:
+            remainingHours = session.hoursNeeded
+            
+            // Split large sessions across multiple days
+            WHILE remainingHours > 0:
+                // Use modulo to cycle through days
+                currentDay = days[dayIndex MOD 7]
+                
+                // Don't exceed daily limit
+                hoursForToday = minimum(remainingHours, hoursPerDay)
+                
+                // Only add if at least 1 hour
+                IF hoursForToday >= 1 THEN:
+                    // Create session for this specific day
+                    daySession = new StudySession(
+                        subject: session.subjectName,
+                        test: session.testName,
+                        hours: hoursForToday,
+                        priority: session.priority,
+                        daysUntil: session.daysUntilTest
+                    )
+                    
+                    // Add to the HashMap for this day
+                    weekPlan.get(currentDay).add(daySession)
+                    
+                    remainingHours = remainingHours - hoursForToday
+                
+                dayIndex = dayIndex + 1  // Move to next day
+
+# Algorithm Validation
+Input: Session needs 6 hours, hoursPerDay = 3
+
+Iteration 1:
+    currentDay = days[0 % 7] = "Monday"
+    hoursForToday = min(6, 3) = 3
+    Add "3 hours" to Monday
+    remainingHours = 6 - 3 = 3
+    dayIndex = 1
+
+Iteration 2:
+    currentDay = days[1 % 7] = "Tuesday"
+    hoursForToday = min(3, 3) = 3
+    Add "3 hours" to Tuesday
+    remainingHours = 3 - 3 = 0
+    dayIndex = 2
+
+Loop ends (remainingHours = 0)
+
+Result: 6-hour session split across Monday (3h) and Tuesday (3h)
+
+FUNCTION printPlan():
+        PRINT "WEEKLY STUDY PLAN"
+        
+        // Iterate in specific day order (not HashMap order!)
+        FOR EACH day IN days array:  // ["Monday", "Tuesday", ...]
+            // HashMap lookup: O(1)
+            sessions = weekPlan.get(day)
+            
+            PRINT day + ":"
+            
+            IF sessions is empty THEN:
+                PRINT "  Rest day"
+            ELSE:
+                totalHours = 0
+                
+                FOR EACH session IN sessions:
+                    PRINT "  - " + session
+                    totalHours = totalHours + session.hoursNeeded
+                
+                PRINT "  Total: " + totalHours + " hours"
+
+weekPlan = {
+    "Monday": [Math-3h, Physics-2h],
+    "Tuesday": [Math-2h],
+    "Wednesday": [Physics-3h]
+}
+
+Iteration:
+    Session: Math-3h
+        hoursBySubject = {"Math": 3}
+    
+    Session: Physics-2h
+        hoursBySubject = {"Math": 3, "Physics": 2}
+    
+    Session: Math-2h
+        hoursBySubject = {"Math": 5, "Physics": 2}
+    
+    Session: Physics-3h
+        hoursBySubject = {"Math": 5, "Physics": 5}
+
+Result: {"Math": 5, "Physics": 5}

@@ -60,6 +60,25 @@ CLASS Subject:
         ELSE:
             RETURN 0  // No tests left
     
+    FUNCTION printInsertionSort() -> Void:
+        tempTests = new List containing all elements from tests
+
+        FOR i = 1 TO tempTests.size - 1 DO:
+            key = tempTests[i]
+            j = i - 1
+
+            WHILE j >= 0 AND tempTests[j].testDate is after key.testDate DO:
+                tempTests[j + 1] = tempTests[j]
+                j = j - 1
+            END WHILE
+
+            tempTests[j + 1] = key
+
+        FOR EACH test IN tempTests DO:
+            PRINT test
+
+    
+    
     FUNCTION compareTo(otherSubject) -> Integer:
         // Compare subjects by their highest-priority test
         IF otherSubject.getSubjectPriority() > this.getSubjectPriority() THEN:

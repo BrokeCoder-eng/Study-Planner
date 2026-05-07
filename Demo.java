@@ -1,10 +1,7 @@
 import java.time.LocalDate;
 
 public class Demo {
-    public static void main(String[] args) {
-        // Create the study planner
-        Studyplanner planner = new Studyplanner();
-        
+    public static void main(String[] args) {        
         // Create Mathematics subject
         Subject math = new Subject("Mathematics");
         math.addTest(new Test("Test 1", 15, LocalDate.now().plusDays(5)));
@@ -27,15 +24,16 @@ public class Demo {
         cs.addTest(new Test("Project 1", 50, LocalDate.now().plusDays(10)));
         cs.addTest(new Test("Final Exam", 50, LocalDate.now().plusDays(45)));
         
+        WeeklyStudyPlanner weeklyPlanner = new WeeklyStudyPlanner();
+
         // Add subjects to planner
-        planner.addSubject(math);
-        planner.addSubject(physics);
-        planner.addSubject(english);
-        planner.addSubject(cs);
+        weeklyPlanner.addSubject(math);
+        weeklyPlanner.addSubject(physics);
+        weeklyPlanner.addSubject(english);
+        weeklyPlanner.addSubject(cs);
         
         // Create weekly study plan
-        WeeklyStudyPlanner weeklyPlanner = new WeeklyStudyPlanner();
-        weeklyPlanner.createPlan(planner, 21);  // 21 hours per week (3 hours/day)
+        weeklyPlanner.createPlan(21);  // 21 hours per week (3 hours/day)
         
         // Print the plan
         weeklyPlanner.printPlan();

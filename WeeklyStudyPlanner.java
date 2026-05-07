@@ -1,10 +1,12 @@
 import java.util.*;
 
 public class WeeklyStudyPlanner {
+    private PriorityQueue<Subject> subjects;
     private Map<String, List<StudySession>> weekPlan;
     private String[] days = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
 
     public WeeklyStudyPlanner() {
+        this.subjects = new PriorityQueue<>();
         this.weekPlan = new HashMap<>();
         for (String day : days) {
             weekPlan.put(day, new ArrayList<>());
@@ -34,10 +36,10 @@ public class WeeklyStudyPlanner {
         return baseHours;
     }
 
-    private List<StudySession> generateStudySessions(Studyplanner planner) {
+    private List<StudySession> generateStudySessions() {
         List<StudySession> sessions = new ArrayList<>();
 
-        PriorityQueue<Subject> tempSubjects = new PriorityQueue<>(planner.subjects);
+        PriorityQueue<Subject> tempSubjects = new PriorityQueue<>(subjects);
 
         while (!tempSubjects.isEmpty()) {
             Subject subject = tempSubjects.poll();
@@ -88,13 +90,17 @@ public class WeeklyStudyPlanner {
             }
         }
     }
+
+    public void addSubject(Subject subject) {
+        this.subjects.offer(subject);
+    }
     
-    public void createPlan(Studyplanner planner, int totalHours) {
+    public void createPlan(int totalHours) {
         for (String day : days) {
             weekPlan.get(day).clear();
         }
 
-        List<StudySession> allSessions = generateStudySessions(planner);
+        List<StudySession> allSessions = generateStudySessions();
 
         distributeSessions(allSessions, totalHours);
     }

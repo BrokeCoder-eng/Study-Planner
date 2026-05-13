@@ -2,6 +2,11 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.io.FileInputStream;
+import java.io.ObjectInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectOutputStream;
+import java.io.IOException;
 
 public class Planner {
     final static Scanner input = new Scanner(System.in);
@@ -18,10 +23,9 @@ public class Planner {
             int option = input.nextInt();
             System.out.println();
 
-            if (option == 5) {
+            if (option == 7) {
                 break;
-            }
-            else {
+            } else {
                 switch (option) {
                     case 1:
                         System.out.print("Enter subject name to be added: ");
@@ -31,11 +35,10 @@ public class Planner {
 
                         break;
                     case 2:
-                        if (subjects.isEmpty()) { 
-                            System.out.println("Add a subject before trying to add a test."); 
+                        if (subjects.isEmpty()) {
+                            System.out.println("Add a subject before trying to add a test.");
                             System.out.println();
-                        }
-                        else {
+                        } else {
                             boolean isAddingTest = true;
 
                             while (isAddingTest) {
@@ -47,9 +50,10 @@ public class Planner {
                                     option = input.nextInt();
                                     System.out.println();
 
-                                    if (option >= backOption) { break; }
+                                    if (option >= backOption) {
+                                        break;
+                                    }
 
-                                
                                     System.out.print("Enter test name to be added: ");
                                     name = input.next();
 
@@ -61,12 +65,11 @@ public class Planner {
 
                                     LocalDate date = LocalDate.parse(dateInput, formatter);
 
-                                
                                     subjects.get(option - 1).addTest(new Test(name, weight, date));
                                     System.out.println("Test added.");
                                     System.out.println();
-                                    
-                                } catch(Exception e) {
+
+                                } catch (Exception e) {
                                     System.out.println("\nInvalid option. Test could not be added.\n");
                                     input.nextLine();
                                 }
@@ -91,6 +94,12 @@ public class Planner {
                         weekPlan.printPlan();
 
                         break;
+                    case 5:
+                        subjects = loadSubjects("subjects.dat");
+                        break;
+                    case 6:
+                        saveSubjects(subjects, "subjects.dat");
+                        break;
                 }
             }
         }
@@ -98,12 +107,14 @@ public class Planner {
 
     public static void printMenu() {
         System.out.println("""
-        1. Add Subject
-        2. Add Test
-        3. Print Tests
-        4. Print Study Plan
-        5. Exit
-        """);
+                1. Add Subject
+                2. Add Test
+                3. Print Tests
+                4. Print Study Plan
+                5. Load Subjects
+                6. Save Subjects
+                7. Exit
+                """);
     }
 
     public static int printSubjectMenu(ArrayList<Subject> subjects) {
@@ -114,5 +125,41 @@ public class Planner {
         }
         System.out.println(i + ". Back");
         return i;
+    }
+
+    public static void saveSubjects(
+            ArrayList<Subject> subjects,
+            String fileName) {
+
+        try (
+                FileOutputStream fos = new FileOutputStream(fileName);
+                ObjectOutputStream oos = new ObjectOutputStream(fos)) {
+
+            oos.writeObject(subjects);
+
+            System.out.println("Subjects saved successfully.");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static ArrayList<Subject> loadSubjects(String fileName) {
+
+        ArrayList<Subject> subjects = new ArrayList<>();
+
+        try (
+                FileInputStream fis = new FileInputStream(fileName);
+                ObjectInputStream ois = new ObjectInputStream(fis)) {
+
+            subjects = (ArrayList<Subject>) ois.readObject();
+
+            System.out.println("Subjects loaded successfully.");
+
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return subjects;
     }
 }

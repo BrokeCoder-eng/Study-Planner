@@ -15,6 +15,7 @@ public class StudySession {
 
     @Override
     public String toString() {
-        return String.format("- %s - %s (%dh) [Priority: %d, %d days until test]", subjectName, testName, hoursNeeded, priority, daysRemaining);
+        return String.format("- %s - %s (%dh) [Priority: %d, %d days until test]", subjectName, testName, hoursNeeded,
+                priority, daysRemaining);
     }
 }

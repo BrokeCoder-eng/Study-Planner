@@ -1,11 +1,13 @@
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.PriorityQueue;
 
-public class Subject implements Comparable<Subject>{
+public class Subject implements Comparable<Subject>, Serializable {
+    private static final long serialVersionUID = 1L;
+
     String name;
     PriorityQueue<Test> tests;
-    
-    
+
     public Subject(String name) {
         this.name = name;
         tests = new PriorityQueue<>();
@@ -40,7 +42,7 @@ public class Subject implements Comparable<Subject>{
             this.tests.add(new Test(t.getName(), t.getWeight(), t.getTestDate()));
         }
     }
-    
+
     public int getSubjectPriority() {
         Test nextTest = tests.peek();
         return (nextTest != null) ? nextTest.priority : 0;
@@ -55,7 +57,7 @@ public class Subject implements Comparable<Subject>{
 
             while (j >= 0 && tempTests.get(j).getTestDate().isAfter(key.getTestDate())) {
                 tempTests.set(j + 1, tempTests.get(j));
-                j = j - 1; 
+                j = j - 1;
             }
             tempTests.set(j + 1, key);
         }
@@ -63,8 +65,8 @@ public class Subject implements Comparable<Subject>{
         for (Test t : tempTests) {
             System.out.println(t);
         }
-    } 
-    
+    }
+
     @Override
     public int compareTo(Subject other) {
         return Integer.compare(other.getSubjectPriority(), this.getSubjectPriority());

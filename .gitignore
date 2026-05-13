@@ -1,2 +1,5 @@
 #ignore all build files
 *.class
+
+#ignore dat generating code
+GenerateDataFile.java

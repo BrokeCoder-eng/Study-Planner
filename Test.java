@@ -1,7 +1,10 @@
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
-public class Test implements Comparable<Test> {
+public class Test implements Comparable<Test>, Serializable {
+    private static final long serialVersionUID = 1L;
+
     String name;
     int weight;
     LocalDate testDate;
@@ -51,16 +54,16 @@ public class Test implements Comparable<Test> {
     }
 
     public boolean isFinished() {
-        return (ChronoUnit.DAYS.between( LocalDate.now(), testDate) < 1);
+        return (ChronoUnit.DAYS.between(LocalDate.now(), testDate) < 1);
     }
 
     private int calculatePriority() {
         long daysLeft = ChronoUnit.DAYS.between(LocalDate.now(), testDate);
-        
+
         double dateFactor = 1.0 / Math.max(daysLeft, 1);
         double weightFactor = this.weight / 100.0;
 
-        return (int)(dateFactor * weightFactor * 1000);
+        return (int) (dateFactor * weightFactor * 1000);
     }
 
     @Override

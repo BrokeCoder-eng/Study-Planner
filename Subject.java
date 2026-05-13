@@ -46,7 +46,7 @@ public class Subject implements Comparable<Subject>{
         return (nextTest != null) ? nextTest.priority : 0;
     }
 
-    public void printInsertionSort() {
+    public void printTests() {
         ArrayList<Test> tempTests = new ArrayList<>(this.tests);
 
         for (int i = 1; i < tempTests.size(); i++) {
@@ -68,6 +68,11 @@ public class Subject implements Comparable<Subject>{
     @Override
     public int compareTo(Subject other) {
         return Integer.compare(other.getSubjectPriority(), this.getSubjectPriority());
+    }
+
+    @Override
+    public String toString() {
+        return this.name;
     }
 
 }
